@@ -1,13 +1,23 @@
-plugin: aws_ec2
-boto_profile: sandbox
+
+---
+plugin: amazon.aws.aws_ec2
+
 regions:
-  - eu-west-1
-# keyed_groups may be used to create custom groups
-strict: true
+  - ap-south-1
+
+filters:
+  instance-state-name: running
+  "tag:Environment": Dev
+  "tag:Project": Jenkins-Ansible
+
+strict: false
+
 keyed_groups:
-  # Add hosts to tag_Name_Value groups for each Name/Value tag pair
   - prefix: tag
     key: tags
+
 hostnames:
-  # - private-ip-address
-  - ip-address
+  - private-ip-address
+
+compose:
+  ansible_host: private_ip_address
