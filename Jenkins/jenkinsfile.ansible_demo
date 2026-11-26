@@ -1,14 +1,48 @@
+
 pipeline {
     agent any
+
     parameters {
-        choice(name: 'TagKey', choices: ["Environment"], description: 'Choose tag')
-        choice(name: 'TagValue', choices: ["Dev"], description: 'Choose tag')
+        choice(name: 'TagKey',
+               choices: ['Environment'],
+               description: 'Choose AWS Tag Key')
+
+        choice(name: 'TagValue',
+               choices: ['Dev'],
+               description: 'Choose AWS Tag Value')
     }
+
+    environment {
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+        PATH = "/var/lib/jenkins/ansible-venv/bin:${env.PATH}"
+    }
+
     stages {
-        stage('Ansible-Playbook Execution') {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Verify Ansible') {
+            steps {
+                sh 'ansible --version'
+            }
+        }
+
+        stage('Ansible Playbook Execution') {
             steps {
                 echo 'Executing Ansible Playbook'
-                ansiblePlaybook colorized: true, credentialsId: 'ansible_user_auth', installation: 'Default', inventory: 'inventory/dynamic.aws_ec2.yml',extras: '-e host_group=\"tag_${TagKey}_${TagValue}\"', playbook: 'playbook/ansible-demo-pb.yaml'
+
+                ansiblePlaybook(
+                    colorized: true,
+                    credentialsId: 'ansible_user_auth',
+                    installation: 'Default',
+                    inventory: 'inventory/dynamic.aws_ec2.yml',
+                    extras: "-e host_group=tag_${params.TagKey}_${params.TagValue}",
+                    playbook: 'playbook/ansible-demo-pb.yaml'
+                )
             }
         }
     }
